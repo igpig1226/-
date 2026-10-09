@@ -5,154 +5,328 @@
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", sans-serif;
+    background: #ffffff;
     min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     padding: 20px;
-    line-height: 1.6;
 }
 
-.container {
-    max-width: 800px;
-    margin: 0 auto;
-    background: white;
-    border-radius: 12px;
-    padding: 40px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+.survey-container {
+    width: 100%;
+    max-width: 600px;
+    position: relative;
 }
 
-header {
+/* 进度条 */
+.progress-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: #f0f0f0;
+    z-index: 100;
+}
+
+.progress-bar {
+    height: 100%;
+    background: #000;
+    width: 0%;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 进度指示 */
+.progress-indicator {
     text-align: center;
     margin-bottom: 40px;
-    padding-bottom: 20px;
-    border-bottom: 2px solid #f0f0f0;
-}
-
-h1 {
-    color: #333;
-    font-size: 2.5em;
-    margin-bottom: 10px;
-}
-
-.subtitle {
+    margin-top: 20px;
+    font-size: 0.9rem;
     color: #666;
-    font-size: 1.1em;
+    font-weight: 500;
 }
 
-.question-group {
-    margin-bottom: 35px;
+.progress-indicator span {
+    font-variant-numeric: tabular-nums;
 }
 
+/* 主要内容区 */
+.survey-main {
+    min-height: 500px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 问题卡片容器 */
+#surveyForm {
+    width: 100%;
+    position: relative;
+}
+
+.question-card {
+    position: absolute;
+    width: 100%;
+    opacity: 0;
+    transform: translateX(100px);
+    pointer-events: none;
+    transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.question-card.active {
+    position: relative;
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: auto;
+}
+
+.question-card.prev {
+    transform: translateX(-100px);
+}
+
+.question-content {
+    text-align: center;
+    padding: 0 20px;
+}
+
+/* 问题标题 */
 .question-title {
-    display: block;
-    font-size: 1.2em;
+    font-size: 2.5rem;
     font-weight: 600;
-    color: #333;
-    margin-bottom: 15px;
+    color: #000;
+    line-height: 1.2;
+    margin-bottom: 50px;
+    letter-spacing: -0.02em;
 }
 
+/* 选项容器 */
 .options {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
+    margin-bottom: 40px;
 }
 
-.options label,
-.rating label {
+.option-item {
     display: flex;
     align-items: center;
-    padding: 12px;
-    border: 2px solid #e0e0e0;
-    border-radius: 8px;
+    padding: 18px 24px;
+    border: 2px solid #e5e5e7;
+    border-radius: 12px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: #ffffff;
 }
 
-.options label:hover,
-.rating label:hover {
-    border-color: #667eea;
-    background-color: #f8f9ff;
+.option-item:hover {
+    border-color: #000;
+    background: #f5f5f7;
 }
 
-input[type="radio"],
-input[type="checkbox"] {
-    margin-right: 10px;
+.option-item input[type="radio"],
+.option-item input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    margin-right: 16px;
     cursor: pointer;
-    width: 18px;
-    height: 18px;
+    accent-color: #000;
 }
 
-textarea {
+.option-text {
+    font-size: 1.1rem;
+    color: #000;
+    font-weight: 500;
+}
+
+.option-item input:checked + .option-text {
+    color: #000;
+}
+
+/* 文本输入 */
+.text-input {
     width: 100%;
-    padding: 12px;
-    border: 2px solid #e0e0e0;
-    border-radius: 8px;
+    padding: 16px 20px;
+    font-size: 1rem;
+    border: 2px solid #e5e5e7;
+    border-radius: 12px;
     font-family: inherit;
-    font-size: 1em;
-    resize: vertical;
-    transition: border-color 0.3s ease;
+    resize: none;
+    transition: border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: #ffffff;
+    color: #000;
 }
 
-textarea:focus {
+.text-input:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #000;
 }
 
-.rating {
+.text-input::placeholder {
+    color: #a1a1a6;
+}
+
+/* 评分选项 */
+.rating-options {
     display: flex;
-    gap: 10px;
+    justify-content: center;
+    gap: 12px;
     flex-wrap: wrap;
 }
 
-.submit-btn {
-    width: 100%;
-    padding: 15px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 1.2em;
-    font-weight: 600;
+.rating-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    border: 2px solid #e5e5e7;
+    border-radius: 12px;
     cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    margin-top: 20px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: #ffffff;
 }
 
-.submit-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+.rating-item:hover {
+    border-color: #000;
+    background: #f5f5f7;
 }
 
-.submit-btn:active {
-    transform: translateY(0);
+.rating-item input[type="radio"] {
+    display: none;
 }
 
-.thank-you {
+.rating-item input[type="radio"]:checked + .rating-text {
+    color: #000;
+    font-weight: 600;
+}
+
+.rating-item input:checked ~ .rating-text {
+    color: #000;
+}
+
+.rating-item:has(input:checked) {
+    border-color: #000;
+    background: #000;
+}
+
+.rating-item:has(input:checked) .rating-text {
+    color: #fff;
+    font-weight: 600;
+}
+
+.rating-text {
+    font-size: 1.3rem;
+    color: #000;
+    font-weight: 500;
+}
+
+/* 导航按钮 */
+.navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 60px;
+    gap: 20px;
+}
+
+.nav-btn {
+    width: 56px;
+    height: 56px;
+    border: 2px solid #e5e5e7;
+    border-radius: 12px;
+    background: #ffffff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    color: #000;
+    flex-shrink: 0;
+}
+
+.nav-btn:hover:not(:disabled) {
+    border-color: #000;
+    background: #f5f5f7;
+}
+
+.nav-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.nav-btn svg {
+    width: 24px;
+    height: 24px;
+}
+
+/* 感谢页面 */
+.thank-you-screen {
     text-align: center;
-    padding: 40px;
+    padding: 80px 40px;
 }
 
-.thank-you h2 {
-    color: #667eea;
-    font-size: 2em;
-    margin-bottom: 15px;
+.thank-you-screen h1 {
+    font-size: 3rem;
+    font-weight: 600;
+    color: #000;
+    margin-bottom: 20px;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
 }
 
-.thank-you p {
+.thank-you-screen p {
+    font-size: 1.3rem;
     color: #666;
-    font-size: 1.2em;
+    font-weight: 400;
 }
 
+/* 动画 */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* 响应式设计 */
 @media (max-width: 600px) {
-    .container {
-        padding: 20px;
+    .question-title {
+        font-size: 2rem;
+        margin-bottom: 40px;
     }
 
-    h1 {
-        font-size: 2em;
+    .option-item {
+        padding: 16px 16px;
     }
 
-    .rating {
-        flex-direction: column;
+    .option-text {
+        font-size: 1rem;
+    }
+
+    .nav-btn {
+        width: 48px;
+        height: 48px;
+    }
+
+    .rating-item {
+        width: 52px;
+        height: 52px;
+    }
+
+    .rating-text {
+        font-size: 1.1rem;
+    }
+
+    .thank-you-screen h1 {
+        font-size: 2.2rem;
+    }
+
+    .thank-you-screen p {
+        font-size: 1.1rem;
     }
 }
+
