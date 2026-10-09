@@ -5,26 +5,35 @@ const VERSION = 1;
 class DataManager {
   constructor() {
     this.db = null;
-    this.initDB();
+    this.dbReady = this.initDB();
   }
 
   initDB() {
-    const request = indexedDB.open(DB_NAME, VERSION);
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(DB_NAME, VERSION);
 
-    request.onerror = () => console.error('数据库初始化失败');
-    request.onupgradeneeded = (e) => {
-      const db = e.target.result;
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
-      }
-    };
+      request.onerror = () => {
+        console.error('数据库初始化失败');
+        reject(request.error);
+      };
 
-    request.onsuccess = (e) => {
-      this.db = e.target.result;
-    };
+      request.onupgradeneeded = (e) => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+          db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+        }
+      };
+
+      request.onsuccess = (e) => {
+        this.db = e.target.result;
+        resolve(this.db);
+      };
+    });
   }
 
   async saveResponse(data) {
+    await this.dbReady;
+
     const response = {
       ...data,
       timestamp: new Date().toISOString(),
@@ -42,6 +51,8 @@ class DataManager {
   }
 
   async getAllResponses() {
+    await this.dbReady;
+
     return new Promise((resolve, reject) => {
       const transaction = this.db.transaction([STORE_NAME], 'readonly');
       const store = transaction.objectStore(STORE_NAME);

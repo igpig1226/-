@@ -201,9 +201,95 @@
         .modal-actions button {
             min-width: 100px;
         }
+        /* 登录页面 */
+        .login-screen {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #ffffff;
+            z-index: 2000;
+        }
+
+        .login-screen.hidden {
+            display: none;
+        }
+
+        .login-box {
+            background: #f9f9fb;
+            border-radius: 12px;
+            padding: 40px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .login-box h2 {
+            font-size: 1.8rem;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 14px 18px;
+            font-size: 1rem;
+            border: 2px solid #e5e5e7;
+            border-radius: 8px;
+            font-family: inherit;
+            transition: border-color 0.2s;
+            background: #ffffff;
+        }
+
+        .login-input:focus {
+            outline: none;
+            border-color: #0A84FF;
+        }
+
+        .login-btn {
+            width: 100%;
+            margin-top: 20px;
+            background: #0A84FF;
+            color: white;
+            border: none;
+            padding: 14px;
+            font-weight: 600;
+        }
+
+        .login-btn:hover {
+            background: #0077ED;
+            border-color: #0077ED;
+        }
+
+        .login-error {
+            color: #FF3B30;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            text-align: center;
+            display: none;
+        }
+
+        .login-error.show {
+            display: block;
+        }
     </style>
 </head>
 <body>
+    <!-- 登录页面 -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-box">
+            <h2>管理员登录</h2>
+            <input type="password" id="passwordInput" class="login-input" placeholder="请输入密码" autocomplete="off">
+            <button id="loginBtn" class="login-btn">登录</button>
+            <div id="loginError" class="login-error">密码错误，请重试</div>
+        </div>
+    </div>
+
     <div class="container">
         <header>
             <h1>问卷数据管理</h1>
@@ -240,6 +326,41 @@
 
     <script src="data-manager.js"></script>
     <script>
+        // 密码保护
+        const ADMIN_PASSWORD = '20101226';
+        const loginScreen = document.getElementById('loginScreen');
+        const passwordInput = document.getElementById('passwordInput');
+        const loginBtn = document.getElementById('loginBtn');
+        const loginError = document.getElementById('loginError');
+
+        // 检查是否已登录
+        const isLoggedIn = sessionStorage.getItem('adminLoggedIn') === 'true';
+        if (isLoggedIn) {
+            loginScreen.classList.add('hidden');
+        }
+
+        function checkPassword() {
+            const password = passwordInput.value;
+            if (password === ADMIN_PASSWORD) {
+                sessionStorage.setItem('adminLoggedIn', 'true');
+                loginScreen.classList.add('hidden');
+                loginError.classList.remove('show');
+                loadResponses();
+            } else {
+                loginError.classList.add('show');
+                passwordInput.value = '';
+                passwordInput.focus();
+            }
+        }
+
+        loginBtn.addEventListener('click', checkPassword);
+        passwordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                checkPassword();
+            }
+        });
+
+        // 原有的数据管理代码
         let deleteTarget = null;
 
         function formatDate(isoString) {
@@ -357,7 +478,9 @@
             }
         });
 
-        loadResponses();
+        if (isLoggedIn) {
+            loadResponses();
+        }
     </script>
 </body>
 </html>
