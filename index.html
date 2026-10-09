@@ -3,59 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>问卷调查</title>
+    <title>网络改造问卷调查</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="survey-container">
+        <!-- 开始页 -->
+        <div id="startPage" class="start-screen">
+            <h1 class="start-title">网络改造<br>问卷调查</h1>
+            <p class="start-desc">感谢您抽出时间参与本次调查。<br>您的意见将直接影响学校的网络改造方案。</p>
+            <button id="startBtn" class="start-btn">开始填写</button>
+        </div>
+
         <!-- 进度条 -->
-        <div class="progress-container">
+        <div class="progress-container" style="display:none;">
             <div class="progress-bar"></div>
         </div>
 
         <!-- 进度指示 -->
-        <div class="progress-indicator">
-            <span id="currentQuestion">1</span> / <span id="totalQuestions">11</span>
+        <div class="progress-indicator" style="display:none;">
+            <span id="currentQuestion">1</span> / <span id="totalQuestions">—</span>
         </div>
 
         <!-- 问卷内容 -->
-        <main class="survey-main">
+        <main class="survey-main" style="display:none;">
             <form id="surveyForm">
-                <!-- 第1题：老师名字 -->
+
+                <!-- Q0：老师名字 -->
                 <div class="question-card" data-question="0">
                     <div class="question-content">
-                        <h2 class="question-title">老师名字</h2>
-                        <input type="text" name="q1" class="text-input" placeholder="请输入老师名字..." required>
+                        <h2 class="question-title">老师，请问您的名字是什么？</h2>
+                        <input type="text" name="q1" class="text-input" placeholder="请输入您的名字...">
                     </div>
                 </div>
 
-                <!-- 第2题：考试科目 -->
+                <!-- Q1：考试科目 + 身份选择 -->
                 <div class="question-card" data-question="1">
                     <div class="question-content">
                         <h2 class="question-title">考试科目</h2>
-                        <p class="question-desc">每次只填一门，格式：AP + 英文（如：AP Calculus BC）</p>
-                        <input type="text" name="q2" class="text-input" placeholder="例如：AP Calculus BC">
-                        <div class="options" style="margin-top: 20px;">
+                        <p class="question-desc">如果您教有考试的科目，请填写科目名称（如：AP Calculus BC / AL Biology / 雅思 / 托福）。每次只填一门。</p>
+                        <input type="text" name="q2" class="text-input" placeholder="例如：AP Calculus BC / AL Biology / 雅思">
+                        <div class="options" style="margin-top: 24px;">
                             <label class="option-item">
-                                <input type="checkbox" name="q2_skip" value="我的科目不是AP或者不需要考试">
-                                <span class="option-text">我的科目不是AP或者不需要考试？（跳过2-5题和第8题）</span>
+                                <input type="radio" name="q_role" value="no-exam">
+                                <span class="option-text">我的科目不需要考试</span>
+                            </label>
+                            <label class="option-item">
+                                <input type="radio" name="q_role" value="homeroom">
+                                <span class="option-text">我是班主任</span>
+                            </label>
+                            <label class="option-item">
+                                <input type="radio" name="q_role" value="counselor">
+                                <span class="option-text">我是升学老师</span>
                             </label>
                         </div>
+                        <p class="question-desc" style="margin-top: 12px;">如果上方选项均不符合，请直接填写科目名称并继续即可。</p>
                     </div>
                 </div>
 
-                <!-- 第3题：班级参加考试人数 -->
-                <div class="question-card" data-question="2">
+                <!-- Q2：班级参加考试人数（仅考试科目） -->
+                <div class="question-card" data-question="2" data-track="exam">
                     <div class="question-content">
-                        <h2 class="question-title">班级参加考试人数</h2>
+                        <h2 class="question-title">班级参加考试的人数</h2>
                         <input type="number" name="q3" class="text-input" placeholder="请输入人数..." min="1">
                     </div>
                 </div>
 
-                <!-- 第4题：考试非选择题时长 -->
-                <div class="question-card" data-question="3">
+                <!-- Q3：考试非选择题时长（仅考试科目） -->
+                <div class="question-card" data-question="3" data-track="exam">
                     <div class="question-content">
-                        <h2 class="question-title">考试非选择题时长</h2>
+                        <h2 class="question-title">考试非选择题的时长</h2>
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <input type="number" name="q4" class="text-input" placeholder="请输入时长..." min="1" style="flex: 1;">
                             <span style="font-size: 1.2rem; color: #8E8E93;">分钟</span>
@@ -63,155 +80,174 @@
                     </div>
                 </div>
 
-                <!-- 第5题：是否希望在半期考试采用机考 -->
-                <div class="question-card" data-question="4">
+                <!-- Q4：是否希望半期考试采用机考（仅考试科目） -->
+                <div class="question-card" data-question="4" data-track="exam">
                     <div class="question-content">
-                        <h2 class="question-title">是否希望在半期考试采用机考</h2>
+                        <h2 class="question-title">您是否希望在半期考试中采用机考形式？</h2>
                         <div class="options">
                             <label class="option-item">
-                                <input type="radio" name="q5" value="是" required>
-                                <span class="option-text">是</span>
+                                <input type="radio" name="q5" value="是">
+                                <span class="option-text">是，希望采用机考</span>
                             </label>
                             <label class="option-item">
-                                <input type="radio" name="q5" value="否" required>
-                                <span class="option-text">否</span>
+                                <input type="radio" name="q5" value="否">
+                                <span class="option-text">否，倾向于纸笔考试</span>
                             </label>
                         </div>
                     </div>
                 </div>
 
-                <!-- 第6题：对于半期考试采用机考的态度 -->
-                <div class="question-card" data-question="5">
+                <!-- Q5：对机考的态度（仅考试科目） -->
+                <div class="question-card" data-question="5" data-track="exam">
                     <div class="question-content">
-                        <h2 class="question-title">对于半期考试采用机考的态度</h2>
-                        <p class="question-desc">1 = 完全反对，3 = 无所谓，5 = 强烈需要</p>
+                        <h2 class="question-title">您对半期考试采用机考的总体态度？</h2>
+                        <p class="question-desc">1 = 完全反对，3 = 无所谓，5 = 非常支持</p>
                         <div class="rating-options">
-                            <label class="rating-item">
-                                <input type="radio" name="q6" value="1" required>
-                                <span class="rating-text">1</span>
-                            </label>
-                            <label class="rating-item">
-                                <input type="radio" name="q6" value="2" required>
-                                <span class="rating-text">2</span>
-                            </label>
-                            <label class="rating-item">
-                                <input type="radio" name="q6" value="3" required>
-                                <span class="rating-text">3</span>
-                            </label>
-                            <label class="rating-item">
-                                <input type="radio" name="q6" value="4" required>
-                                <span class="rating-text">4</span>
-                            </label>
-                            <label class="rating-item">
-                                <input type="radio" name="q6" value="5" required>
-                                <span class="rating-text">5</span>
-                            </label>
+                            <label class="rating-item"><input type="radio" name="q6" value="1"><span class="rating-text">1</span></label>
+                            <label class="rating-item"><input type="radio" name="q6" value="2"><span class="rating-text">2</span></label>
+                            <label class="rating-item"><input type="radio" name="q6" value="3"><span class="rating-text">3</span></label>
+                            <label class="rating-item"><input type="radio" name="q6" value="4"><span class="rating-text">4</span></label>
+                            <label class="rating-item"><input type="radio" name="q6" value="5"><span class="rating-text">5</span></label>
                         </div>
                     </div>
                 </div>
 
-                <!-- 第7题：对于学校wifi效果的满意度 -->
-                <div class="question-card" data-question="6">
+                <!-- Q6：WiFi满意度（所有老师） -->
+                <div class="question-card" data-question="6" data-track="all">
                     <div class="question-content">
-                        <h2 class="question-title">对于学校wifi效果的满意度</h2>
+                        <h2 class="question-title">您对学校目前 WiFi 效果的满意度？</h2>
                         <p class="question-desc">1 = 非常不满意，5 = 非常满意</p>
                         <div class="rating-options">
-                            <label class="rating-item">
-                                <input type="radio" name="q7" value="1" required>
-                                <span class="rating-text">1</span>
-                            </label>
-                            <label class="rating-item">
-                                <input type="radio" name="q7" value="2" required>
-                                <span class="rating-text">2</span>
-                            </label>
-                            <label class="rating-item">
-                                <input type="radio" name="q7" value="3" required>
-                                <span class="rating-text">3</span>
-                            </label>
-                            <label class="rating-item">
-                                <input type="radio" name="q7" value="4" required>
-                                <span class="rating-text">4</span>
-                            </label>
-                            <label class="rating-item">
-                                <input type="radio" name="q7" value="5" required>
-                                <span class="rating-text">5</span>
-                            </label>
+                            <label class="rating-item"><input type="radio" name="q7" value="1"><span class="rating-text">1</span></label>
+                            <label class="rating-item"><input type="radio" name="q7" value="2"><span class="rating-text">2</span></label>
+                            <label class="rating-item"><input type="radio" name="q7" value="3"><span class="rating-text">3</span></label>
+                            <label class="rating-item"><input type="radio" name="q7" value="4"><span class="rating-text">4</span></label>
+                            <label class="rating-item"><input type="radio" name="q7" value="5"><span class="rating-text">5</span></label>
                         </div>
                     </div>
                 </div>
 
-                <!-- 第8题：考试中方案的可行性 -->
-                <div class="question-card" data-question="7">
+                <!-- Q7：考试中网络方案可行性（仅考试科目） -->
+                <div class="question-card" data-question="7" data-track="exam">
                     <div class="question-content">
-                        <h2 class="question-title">考试中方案的可行性</h2>
-                        <p class="question-desc">Wifi控制，只有考试的软件可以联网，会限制随身wifi和热点，但是学生可能可以偷偷查看本地的图片和预存的内容</p>
-                        <p class="question-desc" style="margin-top: 10px;">1 = 不行，2 = 需要改进，3 = 完全可以</p>
+                        <h2 class="question-title">考试期间网络管控方案的可行性</h2>
+                        <p class="question-desc">拟采用 WiFi 管控，考试期间仅允许考试软件联网，限制随身 WiFi 和热点，但学生仍可能访问本地预存内容。</p>
+                        <p class="question-desc" style="margin-top: 10px;">1 = 无法接受，2 = 需要改进，3 = 完全可行</p>
                         <div class="rating-options" style="margin-bottom: 30px;">
-                            <label class="rating-item">
-                                <input type="radio" name="q8_rating" value="1" required>
-                                <span class="rating-text">1</span>
-                            </label>
-                            <label class="rating-item">
-                                <input type="radio" name="q8_rating" value="2" required>
-                                <span class="rating-text">2</span>
-                            </label>
-                            <label class="rating-item">
-                                <input type="radio" name="q8_rating" value="3" required>
-                                <span class="rating-text">3</span>
-                            </label>
+                            <label class="rating-item"><input type="radio" name="q8_rating" value="1"><span class="rating-text">1</span></label>
+                            <label class="rating-item"><input type="radio" name="q8_rating" value="2"><span class="rating-text">2</span></label>
+                            <label class="rating-item"><input type="radio" name="q8_rating" value="3"><span class="rating-text">3</span></label>
                         </div>
-                        <textarea name="q8_text" class="text-input" placeholder="更多需求或建议（选填）..." rows="4"></textarea>
+                        <textarea name="q8_text" class="text-input" placeholder="如有具体建议或顾虑，欢迎在此补充（选填）..." rows="4"></textarea>
                     </div>
                 </div>
 
-                <!-- 第9题：日常方案的可行性 -->
-                <div class="question-card" data-question="8">
+                <!-- Q8：日常网络方案可行性（考试科目 + 班主任） -->
+                <div class="question-card" data-question="8" data-track="exam-homeroom">
                     <div class="question-content">
-                        <h2 class="question-title">日常方案的可行性</h2>
-                        <p class="question-desc">Wifi控制，在上课时间段只能访问学术网站和办学帮，会限制随身wifi和热点，但是学生可能可以偷偷查看本地的图片和预存的内容，全天限制游戏，短的课间限制娱乐视频网站，我们会保证学生之间与老师的基本聊天和发送文件功能和班级群。</p>
-                        <p class="question-desc" style="margin-top: 10px;">1 = 不行，2 = 需要改进，3 = 完全可以</p>
+                        <h2 class="question-title">日常上课期间网络管控方案的可行性</h2>
+                        <p class="question-desc">拟在上课时段仅允许访问学术类网站和伴学邦，限制随身 WiFi 和热点；全天屏蔽游戏，短课间限制娱乐视频；保障师生基本聊天和文件传输功能。</p>
+                        <p class="question-desc" style="margin-top: 10px;">1 = 无法接受，2 = 需要改进，3 = 完全可行</p>
                         <div class="rating-options" style="margin-bottom: 30px;">
-                            <label class="rating-item">
-                                <input type="radio" name="q9_rating" value="1" required>
-                                <span class="rating-text">1</span>
+                            <label class="rating-item"><input type="radio" name="q9_rating" value="1"><span class="rating-text">1</span></label>
+                            <label class="rating-item"><input type="radio" name="q9_rating" value="2"><span class="rating-text">2</span></label>
+                            <label class="rating-item"><input type="radio" name="q9_rating" value="3"><span class="rating-text">3</span></label>
+                        </div>
+                        <textarea name="q9_text" class="text-input" placeholder="如有具体建议或顾虑，欢迎在此补充（选填）..." rows="4"></textarea>
+                    </div>
+                </div>
+
+                <!-- Q9：晚自习网络权限（仅班主任） -->
+                <div class="question-card" data-question="9" data-track="homeroom">
+                    <div class="question-content">
+                        <h2 class="question-title">晚自习及自习时间的网络开放范围</h2>
+                        <p class="question-desc">您认为在晚自习和其他自习时间段，应开启哪些网站的访问权限？</p>
+                        <div class="options" style="margin-top: 10px;">
+                            <label class="option-item">
+                                <input type="radio" name="q_evening_net" value="全部开放">
+                                <span class="option-text">全部开放，不加限制</span>
                             </label>
-                            <label class="rating-item">
-                                <input type="radio" name="q9_rating" value="2" required>
-                                <span class="rating-text">2</span>
+                            <label class="option-item">
+                                <input type="radio" name="q_evening_net" value="黑名单制">
+                                <span class="option-text">黑名单制 — 屏蔽常用娱乐及游戏网站（如抖音、B 站、Steam 等），其余正常访问</span>
                             </label>
-                            <label class="rating-item">
-                                <input type="radio" name="q9_rating" value="3" required>
-                                <span class="rating-text">3</span>
+                            <label class="option-item">
+                                <input type="radio" name="q_evening_net" value="白名单制">
+                                <span class="option-text">白名单制 — 仅开放少量学习类网站（如 Google、百度学术、Khan Academy 等）</span>
+                            </label>
+                            <label class="option-item">
+                                <input type="radio" name="q_evening_net" value="自定义">
+                                <span class="option-text">希望可以自定义每个时间段的网络限制规则</span>
                             </label>
                         </div>
-                        <textarea name="q9_text" class="text-input" placeholder="更多需求或建议（选填）..." rows="4"></textarea>
                     </div>
                 </div>
 
-                <!-- 第10题：其他意见 -->
-                <div class="question-card" data-question="9">
+                <!-- Q10：班主任 — 机考对日常工作的影响（仅班主任） -->
+                <div class="question-card" data-question="10" data-track="homeroom">
                     <div class="question-content">
-                        <h2 class="question-title">其他意见</h2>
-                        <textarea name="q10" class="text-input" placeholder="请输入您的其他意见和建议（选填）..." rows="5"></textarea>
+                        <h2 class="question-title">机考实施对您日常工作的影响</h2>
+                        <p class="question-desc">请问机考的推行对班级管理、考勤安排或升学档案整理等工作有哪些影响？</p>
+                        <textarea name="q10_homeroom" class="text-input" placeholder="例如：成绩录入流程变化、考场协调安排等（选填）..." rows="4"></textarea>
                     </div>
                 </div>
 
-                <!-- 第11题：联系方式提示 -->
-                <div class="question-card" data-question="10">
+                <!-- Q11：班主任 — 具体需求与建议（仅班主任） -->
+                <div class="question-card" data-question="11" data-track="homeroom">
                     <div class="question-content">
-                        <h2 class="question-title">联系方式</h2>
+                        <h2 class="question-title">在推行机考方面，您有哪些具体需求或期望获得的支持？</h2>
+                        <textarea name="q11_homeroom" class="text-input" placeholder="例如：希望提前知会家长、希望保留备用纸质方案等（选填）..." rows="4"></textarea>
+                    </div>
+                </div>
+
+                <!-- Q12：升学老师 — 楼道路由器（仅升学老师） -->
+                <div class="question-card" data-question="12" data-track="counselor">
+                    <div class="question-content">
+                        <h2 class="question-title">您认为是否有必要在楼道安装路由器？</h2>
+                        <p class="question-desc">在楼道及公共区域安装路由器，可确保师生在课间、走廊等位置也能获得稳定的网络连接。</p>
+                        <div class="options">
+                            <label class="option-item">
+                                <input type="radio" name="q_hallway_router" value="非常有必要">
+                                <span class="option-text">非常有必要，公共区域网络信号目前较差</span>
+                            </label>
+                            <label class="option-item">
+                                <input type="radio" name="q_hallway_router" value="有一定必要">
+                                <span class="option-text">有一定必要，但不是最优先的需求</span>
+                            </label>
+                            <label class="option-item">
+                                <input type="radio" name="q_hallway_router" value="不需要">
+                                <span class="option-text">不需要，目前公共区域网络基本够用</span>
+                            </label>
+                        </div>
+                        <textarea name="q_hallway_router_text" class="text-input" placeholder="如有其他想法，欢迎补充（选填）..." rows="3" style="margin-top: 16px;"></textarea>
+                    </div>
+                </div>
+
+                <!-- Q13：其他意见（所有老师） -->
+                <div class="question-card" data-question="13" data-track="all">
+                    <div class="question-content">
+                        <h2 class="question-title">还有其他意见或建议吗？</h2>
+                        <textarea name="q_other" class="text-input" placeholder="欢迎分享任何其他想法（选填）..." rows="5"></textarea>
+                    </div>
+                </div>
+
+                <!-- Q14：联系方式（所有老师） -->
+                <div class="question-card" data-question="14" data-track="all">
+                    <div class="question-content">
+                        <h2 class="question-title">感谢您的参与</h2>
                         <div class="info-box">
-                            <p>有问题请联系：</p>
+                            <p>如有任何疑问，欢迎联系我们：</p>
                             <p style="margin-top: 15px;">📱 微信：13880861866</p>
                             <p style="margin-top: 10px;">👤 联系人：G10 AP3 周田园</p>
                         </div>
                     </div>
                 </div>
+
             </form>
         </main>
 
         <!-- 导航按钮 -->
-        <div class="navigation">
+        <div class="navigation" style="display:none;">
             <button id="prevBtn" class="nav-btn nav-btn-prev" disabled>
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                     <path d="M12 16L6 10L12 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -238,9 +274,12 @@
         <div id="thankYou" class="thank-you-screen" style="display: none;">
             <h1>感谢您的参与</h1>
             <p>您的反馈对我们非常重要</p>
-            <a href="admin.html" style="margin-top: 30px; display: inline-block;">
-                <button style="background: #0A84FF; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 500;">查看数据管理</button>
-            </a>
+            <div style="margin-top: 32px; display: flex; flex-direction: column; align-items: center; gap: 14px;">
+                <button id="anotherSubjectBtn" style="background: #0A84FF; color: white; border: none; padding: 14px 28px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1rem; font-family: inherit;">还有别的科目？继续填写</button>
+                <a href="admin.html">
+                    <button style="background: #f5f5f7; color: #000; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 500; font-family: inherit;">查看数据管理</button>
+                </a>
+            </div>
         </div>
     </div>
 

@@ -64,6 +64,7 @@ class DataManager {
   }
 
   async deleteResponse(id) {
+    await this.dbReady;
     return new Promise((resolve, reject) => {
       const transaction = this.db.transaction([STORE_NAME], 'readwrite');
       const store = transaction.objectStore(STORE_NAME);
@@ -75,6 +76,7 @@ class DataManager {
   }
 
   async clearAll() {
+    await this.dbReady;
     return new Promise((resolve, reject) => {
       const transaction = this.db.transaction([STORE_NAME], 'readwrite');
       const store = transaction.objectStore(STORE_NAME);

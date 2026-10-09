@@ -267,6 +267,56 @@ body {
     height: 24px;
 }
 
+/* 开始页面 */
+.start-screen {
+    text-align: center;
+    padding: 80px 20px;
+    min-height: 500px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.start-title {
+    font-size: 3.2rem;
+    font-weight: 700;
+    color: #000;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    margin-bottom: 28px;
+}
+
+.start-desc {
+    font-size: 1.05rem;
+    color: #8E8E93;
+    line-height: 1.7;
+    margin-bottom: 48px;
+    max-width: 320px;
+}
+
+.start-btn {
+    background: #0A84FF;
+    color: white;
+    border: none;
+    padding: 16px 40px;
+    border-radius: 8px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.15s;
+    font-family: inherit;
+}
+
+.start-btn:hover {
+    background: #0077ED;
+    transform: translateY(-1px);
+}
+
+.start-btn:active {
+    transform: translateY(0);
+}
+
 /* 感谢页面 */
 .thank-you-screen {
     text-align: center;

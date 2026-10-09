@@ -1,68 +1,94 @@
-let currentQuestion = 0;
+// Route sequences by role (data-question indices)
+const ROUTES = {
+    exam:     [0, 1, 2, 3, 4, 5, 6, 7, 8, 13, 14],
+    'no-exam':[0, 1, 6, 13, 14],
+    homeroom: [0, 1, 6, 8, 9, 10, 11, 13, 14],
+    counselor:[0, 1, 6, 12, 13, 14],
+};
+
 const questions = document.querySelectorAll('.question-card');
-const totalQuestions = questions.length;
+let currentRoute = ROUTES.exam; // default until role is chosen at Q1
+let routePos = 0; // index into currentRoute
 
-document.getElementById('totalQuestions').textContent = totalQuestions;
+function getRole() {
+    const checked = document.querySelector('input[name="q_role"]:checked');
+    return checked ? checked.value : null;
+}
 
-function showQuestion(index) {
-    questions.forEach((q, i) => {
+function resolveRoute() {
+    const role = getRole();
+    return ROUTES[role] || ROUTES.exam;
+}
+
+function showQuestion(questionIndex) {
+    questions.forEach(q => {
         q.classList.remove('active', 'prev');
-        if (i === index) {
+        const qi = parseInt(q.dataset.question, 10);
+        if (qi === questionIndex) {
             q.classList.add('active');
-        } else if (i < index) {
+        } else if (currentRoute.indexOf(qi) < routePos) {
             q.classList.add('prev');
         }
     });
 
-    // 更新进度条
-    const progress = ((index + 1) / totalQuestions) * 100;
+    const total = currentRoute.length;
+    const pos = routePos + 1;
+    const progress = (pos / total) * 100;
     document.querySelector('.progress-bar').style.width = progress + '%';
-
-    // 更新问题计数
-    document.getElementById('currentQuestion').textContent = index + 1;
-
-    // 更新按钮状态
-    document.getElementById('prevBtn').disabled = index === 0;
-
-    // 最后一题时，下一个按钮显示不同
-    if (index === totalQuestions - 1) {
-        document.getElementById('nextBtn').innerHTML = '<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M8 16L14 10L8 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-    } else {
-        document.getElementById('nextBtn').innerHTML = '<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M8 16L14 10L8 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-    }
+    document.getElementById('currentQuestion').textContent = pos;
+    document.getElementById('totalQuestions').textContent = total;
+    document.getElementById('prevBtn').disabled = routePos === 0;
 }
 
+function startSurvey() {
+    document.getElementById('startPage').style.display = 'none';
+    document.querySelector('.progress-container').style.display = 'block';
+    document.querySelector('.progress-indicator').style.display = 'block';
+    document.querySelector('.survey-main').style.display = 'flex';
+    document.querySelector('.navigation').style.display = 'flex';
+    routePos = 0;
+    showQuestion(currentRoute[routePos]);
+}
+
+document.getElementById('startBtn').addEventListener('click', startSurvey);
+
 document.getElementById('prevBtn').addEventListener('click', () => {
-    if (currentQuestion > 0) {
-        currentQuestion--;
-        showQuestion(currentQuestion);
+    if (routePos > 0) {
+        routePos--;
+        showQuestion(currentRoute[routePos]);
     }
 });
 
 document.getElementById('nextBtn').addEventListener('click', () => {
-    if (currentQuestion < totalQuestions - 1) {
-        // 处理跳题逻辑：如果第2题选择了跳过，跳到第6题
-        const skipCheckbox = document.querySelector('input[name="q2_skip"]');
-        if (currentQuestion === 1 && skipCheckbox && skipCheckbox.checked) {
-            currentQuestion = 5; // 跳到第6题（索引5）
-        } else {
-            currentQuestion++;
-        }
-        showQuestion(currentQuestion);
+    // After Q1, lock in the route based on role selection
+    if (currentRoute[routePos] === 1) {
+        currentRoute = resolveRoute();
+        // Recalculate routePos in new route (we just finished index 1, so pos = 1)
+        routePos = currentRoute.indexOf(1);
+    }
+
+    if (routePos < currentRoute.length - 1) {
+        routePos++;
+        showQuestion(currentRoute[routePos]);
     } else {
         showReviewPage();
     }
 });
 
-// 键盘导航
+// Keyboard navigation
 document.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowLeft' && currentQuestion > 0) {
-        currentQuestion--;
-        showQuestion(currentQuestion);
+    if (document.getElementById('startPage').style.display !== 'none') return;
+    if (e.key === 'ArrowLeft' && routePos > 0) {
+        routePos--;
+        showQuestion(currentRoute[routePos]);
     } else if (e.key === 'ArrowRight') {
-        if (currentQuestion < totalQuestions - 1) {
-            currentQuestion++;
-            showQuestion(currentQuestion);
+        if (currentRoute[routePos] === 1) {
+            currentRoute = resolveRoute();
+            routePos = currentRoute.indexOf(1);
+        }
+        if (routePos < currentRoute.length - 1) {
+            routePos++;
+            showQuestion(currentRoute[routePos]);
         } else {
             showReviewPage();
         }
@@ -72,69 +98,57 @@ document.addEventListener('keydown', (e) => {
 function collectFormData() {
     const formData = new FormData(document.getElementById('surveyForm'));
     const data = {};
-
     for (let [key, value] of formData.entries()) {
         if (data[key]) {
-            if (Array.isArray(data[key])) {
-                data[key].push(value);
-            } else {
-                data[key] = [data[key], value];
-            }
+            data[key] = Array.isArray(data[key]) ? [...data[key], value] : [data[key], value];
         } else {
             data[key] = value;
         }
     }
-
     return data;
 }
 
+const QUESTION_LABELS = {
+    q1:                  '老师名字',
+    q2:                  '考试科目',
+    q_role:              '身份 / 科目类型',
+    q3:                  '班级参加考试人数',
+    q4:                  '考试非选择题时长',
+    q5:                  '是否希望采用机考',
+    q6:                  '对机考的总体态度',
+    q7:                  '对学校 WiFi 的满意度',
+    q8_rating:           '考试期间网络方案可行性（评分）',
+    q8_text:             '考试期间网络方案可行性（补充）',
+    q9_rating:           '日常上课期间网络方案可行性（评分）',
+    q9_text:             '日常上课期间网络方案可行性（补充）',
+    q_evening_net:       '晚自习网络开放范围',
+    q10_homeroom:        '机考对日常工作的影响',
+    q11_homeroom:        '推行机考的具体需求与建议',
+    q_hallway_router:    '是否有必要在楼道安装路由器',
+    q_hallway_router_text: '楼道路由器补充意见',
+    q_other:             '其他意见',
+};
+
 function showReviewPage() {
     const data = collectFormData();
-    const reviewContent = document.getElementById('reviewContent');
-
-    const questionTitles = {
-        'q1': '1. 老师名字',
-        'q2': '2. 考试科目',
-        'q2_skip': '跳过AP考试相关题目',
-        'q3': '3. 班级参加考试人数',
-        'q4': '4. 考试非选择题时长',
-        'q5': '5. 是否希望在半期考试采用机考',
-        'q6': '6. 对于半期考试采用机考的态度',
-        'q7': '7. 对于学校wifi效果的满意度',
-        'q8_rating': '8. 考试中方案的可行性（评分）',
-        'q8_text': '8. 考试中方案的可行性（补充说明）',
-        'q9_rating': '9. 日常方案的可行性（评分）',
-        'q9_text': '9. 日常方案的可行性（补充说明）',
-        'q10': '10. 其他意见'
-    };
-
     let html = '';
-    for (let key in data) {
-        if (data[key] && data[key].toString().trim() !== '') {
-            const title = questionTitles[key] || key;
-            let value = data[key];
 
-            // 格式化数值答案
-            if (key === 'q4') {
-                value = value + ' 分钟';
-            } else if (key === 'q3') {
-                value = value + ' 人';
-            } else if (key === 'q6' || key === 'q7') {
-                value = value + ' 分';
-            }
+    for (let key of Object.keys(QUESTION_LABELS)) {
+        const val = data[key];
+        if (!val || val.toString().trim() === '') continue;
+        let display = val;
+        if (key === 'q4') display = val + ' 分钟';
+        else if (key === 'q3') display = val + ' 人';
+        else if (key === 'q6' || key === 'q7') display = val + ' 分';
 
-            html += `
-                <div class="review-item">
-                    <div class="review-label">${title}</div>
-                    <div class="review-value">${value}</div>
-                </div>
-            `;
-        }
+        html += `
+            <div class="review-item">
+                <div class="review-label">${QUESTION_LABELS[key]}</div>
+                <div class="review-value">${display}</div>
+            </div>`;
     }
 
-    reviewContent.innerHTML = html;
-
-    // 隐藏问卷，显示确认页面
+    document.getElementById('reviewContent').innerHTML = html;
     document.querySelector('.survey-main').style.display = 'none';
     document.querySelector('.navigation').style.display = 'none';
     document.querySelector('.progress-container').style.display = 'none';
@@ -148,29 +162,39 @@ document.getElementById('backToEdit').addEventListener('click', () => {
     document.querySelector('.navigation').style.display = 'flex';
     document.querySelector('.progress-container').style.display = 'block';
     document.querySelector('.progress-indicator').style.display = 'block';
-    showQuestion(currentQuestion);
+    showQuestion(currentRoute[routePos]);
 });
 
-document.getElementById('confirmSubmit').addEventListener('click', () => {
-    submitSurvey();
-});
+document.getElementById('confirmSubmit').addEventListener('click', submitSurvey);
 
 function submitSurvey() {
     const data = collectFormData();
-
-    console.log('问卷数据:', data);
-
-    // 保存到 IndexedDB
     dataManager.saveResponse(data).then(id => {
         console.log('问卷已保存，ID:', id);
     }).catch(err => {
         console.error('保存失败:', err);
     });
-
-    // 隐藏确认页面，显示感谢页面
     document.getElementById('reviewPage').style.display = 'none';
     document.getElementById('thankYou').style.display = 'block';
 }
 
-// 初始化，显示第一题
-showQuestion(0);
+document.getElementById('anotherSubjectBtn').addEventListener('click', () => {
+    // Keep teacher name, reset everything else
+    const teacherName = document.querySelector('input[name="q1"]').value;
+
+    document.getElementById('surveyForm').reset();
+
+    document.querySelector('input[name="q1"]').value = teacherName;
+
+    // Reset route to exam (default) and jump to Q1 (subject question, index 1)
+    currentRoute = ROUTES.exam;
+    routePos = currentRoute.indexOf(1);
+
+    document.getElementById('thankYou').style.display = 'none';
+    document.querySelector('.survey-main').style.display = 'flex';
+    document.querySelector('.navigation').style.display = 'flex';
+    document.querySelector('.progress-container').style.display = 'block';
+    document.querySelector('.progress-indicator').style.display = 'block';
+
+    showQuestion(currentRoute[routePos]);
+});
