@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>问卷调查</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>问卷调查</h1>
+            <p class="subtitle">感谢您抽出宝贵时间参与本次调查</p>
+        </header>
+
+        <form id="surveyForm">
+            <!-- 问题示例，你可以根据需要修改 -->
+            <div class="question-group">
+                <label class="question-title">1. 这是一个单选题示例</label>
+                <div class="options">
+                    <label><input type="radio" name="q1" value="选项A"> 选项A</label>
+                    <label><input type="radio" name="q1" value="选项B"> 选项B</label>
+                    <label><input type="radio" name="q1" value="选项C"> 选项C</label>
+                </div>
+            </div>
+
+            <div class="question-group">
+                <label class="question-title">2. 这是一个多选题示例</label>
+                <div class="options">
+                    <label><input type="checkbox" name="q2" value="选项1"> 选项1</label>
+                    <label><input type="checkbox" name="q2" value="选项2"> 选项2</label>
+                    <label><input type="checkbox" name="q2" value="选项3"> 选项3</label>
+                    <label><input type="checkbox" name="q2" value="选项4"> 选项4</label>
+                </div>
+            </div>
+
+            <div class="question-group">
+                <label class="question-title">3. 这是一个文本输入示例</label>
+                <textarea name="q3" rows="4" placeholder="请输入您的答案..."></textarea>
+            </div>
+
+            <div class="question-group">
+                <label class="question-title">4. 评分题示例（1-5分）</label>
+                <div class="rating">
+                    <label><input type="radio" name="q4" value="1"> 1分</label>
+                    <label><input type="radio" name="q4" value="2"> 2分</label>
+                    <label><input type="radio" name="q4" value="3"> 3分</label>
+                    <label><input type="radio" name="q4" value="4"> 4分</label>
+                    <label><input type="radio" name="q4" value="5"> 5分</label>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn">提交问卷</button>
+        </form>
+
+        <div id="thankYou" class="thank-you" style="display: none;">
+            <h2>感谢您的参与！</h2>
+            <p>您的反馈对我们非常重要</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
