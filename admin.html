@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>问卷数据管理</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", sans-serif;
+            background: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+            color: #000;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 40px;
+            border-bottom: 1px solid #e5e5e7;
+            padding-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            padding: 20px;
+            background: #f9f9fb;
+            border-radius: 8px;
+            border: 1px solid #e5e5e7;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #0A84FF;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #8E8E93;
+            margin-top: 8px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: 2px solid #e5e5e7;
+            border-radius: 8px;
+            background: #ffffff;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        button:hover {
+            border-color: #0A84FF;
+            background: #f9f9fb;
+        }
+
+        button.danger {
+            border-color: #FF3B30;
+            color: #FF3B30;
+        }
+
+        button.danger:hover {
+            background: #fff5f5;
+        }
+
+        .responses-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+            border: 1px solid #e5e5e7;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .responses-table thead {
+            background: #f9f9fb;
+        }
+
+        .responses-table th,
+        .responses-table td {
+            padding: 16px;
+            text-align: left;
+            border-bottom: 1px solid #e5e5e7;
+        }
+
+        .responses-table th {
+            font-weight: 600;
+            color: #000;
+        }
+
+        .responses-table td {
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        .responses-table tbody tr:hover {
+            background: #f9f9fb;
+        }
+
+        .responses-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .delete-btn {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            color: #FF3B30;
+            border: 1px solid #FF3B30;
+        }
+
+        .delete-btn:hover {
+            background: #fff5f5;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #8E8E93;
+        }
+
+        .empty-state h2 {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            color: #000;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal h2 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+
+        .modal p {
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .modal-actions button {
+            min-width: 100px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>问卷数据管理</h1>
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalCount">0</div>
+                    <div class="stat-label">总响应数</div>
+                </div>
+            </div>
+        </header>
+
+        <div class="controls">
+            <button id="exportJson">导出 JSON</button>
+            <button id="exportCsv">导出 CSV</button>
+            <button id="clearAll" class="danger">清除所有数据</button>
+            <a href="index.html" style="text-decoration: none;">
+                <button>返回问卷</button>
+            </a>
+        </div>
+
+        <div id="responsesContainer"></div>
+    </div>
+
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <h2>确认删除</h2>
+            <p id="confirmText"></p>
+            <div class="modal-actions">
+                <button id="cancelBtn">取消</button>
+                <button id="confirmBtn" class="danger">删除</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="data-manager.js"></script>
+    <script>
+        let deleteTarget = null;
+
+        function formatDate(isoString) {
+            const date = new Date(isoString);
+            return date.toLocaleString('zh-CN');
+        }
+
+        async function loadResponses() {
+            const responses = await dataManager.getAllResponses();
+            const container = document.getElementById('responsesContainer');
+
+            document.getElementById('totalCount').textContent = responses.length;
+
+            if (responses.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h2>暂无数据</h2>
+                        <p>还没有收集到问卷响应</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const table = document.createElement('table');
+            table.className = 'responses-table';
+
+            const headers = ['ID', '时间', '数据', '操作'];
+            const thead = table.createTHead();
+            const headerRow = thead.insertRow();
+            headers.forEach(h => {
+                const th = document.createElement('th');
+                th.textContent = h;
+                headerRow.appendChild(th);
+            });
+
+            const tbody = table.createTBody();
+            responses.forEach(response => {
+                const row = tbody.insertRow();
+
+                const idCell = row.insertCell();
+                idCell.textContent = response.id;
+
+                const timeCell = row.insertCell();
+                timeCell.textContent = formatDate(response.timestamp);
+
+                const dataCell = row.insertCell();
+                dataCell.textContent = JSON.stringify(response).substring(0, 50) + '...';
+
+                const actionCell = row.insertCell();
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.textContent = '删除';
+                deleteBtn.onclick = () => showDeleteConfirm(response.id);
+                actionCell.appendChild(deleteBtn);
+            });
+
+            container.innerHTML = '';
+            container.appendChild(table);
+        }
+
+        function showDeleteConfirm(id) {
+            deleteTarget = id;
+            document.getElementById('confirmText').textContent = `确认删除 ID 为 ${id} 的问卷响应吗？此操作不可撤销。`;
+            document.getElementById('confirmModal').classList.add('active');
+        }
+
+        async function confirmDelete() {
+            if (deleteTarget) {
+                await dataManager.deleteResponse(deleteTarget);
+                deleteTarget = null;
+                document.getElementById('confirmModal').classList.remove('active');
+                loadResponses();
+            }
+        }
+
+        function cancelDelete() {
+            deleteTarget = null;
+            document.getElementById('confirmModal').classList.remove('active');
+        }
+
+        async function showClearConfirm() {
+            deleteTarget = 'all';
+            document.getElementById('confirmText').textContent = '确认清除所有问卷数据吗？此操作不可撤销。';
+            document.getElementById('confirmModal').classList.add('active');
+        }
+
+        document.getElementById('exportJson').addEventListener('click', async () => {
+            const responses = await dataManager.getAllResponses();
+            dataManager.exportAsJSON(responses);
+        });
+
+        document.getElementById('exportCsv').addEventListener('click', async () => {
+            const responses = await dataManager.getAllResponses();
+            dataManager.exportAsCSV(responses);
+        });
+
+        document.getElementById('clearAll').addEventListener('click', showClearConfirm);
+
+        document.getElementById('confirmBtn').addEventListener('click', async () => {
+            if (deleteTarget === 'all') {
+                await dataManager.clearAll();
+                deleteTarget = null;
+                document.getElementById('confirmModal').classList.remove('active');
+                loadResponses();
+            } else {
+                confirmDelete();
+            }
+        });
+
+        document.getElementById('cancelBtn').addEventListener('click', cancelDelete);
+
+        document.getElementById('confirmModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('confirmModal')) {
+                cancelDelete();
+            }
+        });
+
+        loadResponses();
+    </script>
+</body>
+</html>

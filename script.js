@@ -81,15 +81,19 @@ function submitSurvey() {
 
     console.log('问卷数据:', data);
 
+    // 保存到 IndexedDB
+    dataManager.saveResponse(data).then(id => {
+        console.log('问卷已保存，ID:', id);
+    }).catch(err => {
+        console.error('保存失败:', err);
+    });
+
     // 隐藏表单和导航，显示感谢页面
     document.querySelector('.survey-main').style.display = 'none';
     document.querySelector('.navigation').style.display = 'none';
     document.querySelector('.progress-container').style.display = 'none';
     document.querySelector('.progress-indicator').style.display = 'none';
     document.getElementById('thankYou').style.display = 'block';
-
-    // 保存到 localStorage
-    localStorage.setItem('surveyData_' + Date.now(), JSON.stringify(data));
 }
 
 // 初始化，显示第一题
