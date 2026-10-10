@@ -133,6 +133,9 @@ const QUESTION_LABELS = {
 function showReviewPage() {
     const data = collectFormData();
     let html = '';
+    const escapeHtml = value => String(value).replace(/[&<>"']/g, char => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[char]);
 
     for (let key of Object.keys(QUESTION_LABELS)) {
         const val = data[key];
@@ -145,7 +148,7 @@ function showReviewPage() {
         html += `
             <div class="review-item">
                 <div class="review-label">${QUESTION_LABELS[key]}</div>
-                <div class="review-value">${display}</div>
+                <div class="review-value">${escapeHtml(display)}</div>
             </div>`;
     }
 
@@ -167,16 +170,27 @@ document.getElementById('backToEdit').addEventListener('click', () => {
 });
 
 document.getElementById('confirmSubmit').addEventListener('click', submitSurvey);
+let submissionId = null;
 
-function submitSurvey() {
+async function submitSurvey() {
     const data = collectFormData();
-    dataManager.saveResponse(data).then(id => {
-        console.log('问卷已保存，ID:', id);
-    }).catch(err => {
-        console.error('保存失败:', err);
-    });
-    document.getElementById('reviewPage').style.display = 'none';
-    document.getElementById('thankYou').style.display = 'block';
+    const button = document.getElementById('confirmSubmit');
+    const error = document.getElementById('submitError');
+    button.disabled = true;
+    button.textContent = '提交中…';
+    error.textContent = '';
+    try {
+        submissionId ||= crypto.randomUUID();
+        await dataManager.saveResponse(data, submissionId);
+        submissionId = null;
+        document.getElementById('reviewPage').style.display = 'none';
+        document.getElementById('thankYou').style.display = 'block';
+    } catch (err) {
+        error.textContent = err.message || '提交失败，请稍后重试。';
+    } finally {
+        button.disabled = false;
+        button.textContent = '确认提交';
+    }
 }
 
 document.getElementById('anotherSubjectBtn').addEventListener('click', () => {

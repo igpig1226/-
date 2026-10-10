@@ -1,143 +1,95 @@
-const DB_NAME = 'SurveyDB';
-const STORE_NAME = 'responses';
-const VERSION = 1;
+const API_BASE_URL = 'https://survey-collector.igpig1226.workers.dev';
 
 class DataManager {
   constructor() {
-    this.db = null;
-    this.dbReady = this.initDB();
+    this.adminPassword = null;
   }
 
-  initDB() {
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.open(DB_NAME, VERSION);
+  async request(path, options = {}, authenticated = false) {
+    if (!API_BASE_URL) {
+      throw new Error('数据收集服务尚未配置，请联系问卷管理员。');
+    }
 
-      request.onerror = () => {
-        console.error('数据库初始化失败');
-        reject(request.error);
-      };
+    const headers = { ...(options.headers || {}) };
+    if (authenticated) {
+      if (!this.adminPassword) throw new Error('请先登录管理员页面。');
+      headers.Authorization = `Bearer ${this.adminPassword}`;
+    }
 
-      request.onupgradeneeded = (e) => {
-        const db = e.target.result;
-        if (!db.objectStoreNames.contains(STORE_NAME)) {
-          db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
-        }
-      };
+    let response;
+    try {
+      response = await fetch(`${API_BASE_URL.replace(/\/$/, '')}${path}`, {
+        ...options,
+        headers,
+        signal: AbortSignal.timeout(15000)
+      });
+    } catch {
+      throw new Error('无法连接数据收集服务，请检查网络后重试。');
+    }
 
-      request.onsuccess = (e) => {
-        this.db = e.target.result;
-        resolve(this.db);
-      };
-    });
+    let result;
+    try {
+      result = await response.json();
+    } catch {
+      throw new Error('数据收集服务返回了无效响应。');
+    }
+    if (!response.ok) throw new Error(result.error || '操作失败，请稍后重试。');
+    return result;
   }
 
-  async saveResponse(data) {
-    await this.dbReady;
-
-    const response = {
-      ...data,
-      timestamp: new Date().toISOString(),
-      userAgent: navigator.userAgent.substring(0, 100)
-    };
-
-    return new Promise((resolve, reject) => {
-      const transaction = this.db.transaction([STORE_NAME], 'readwrite');
-      const store = transaction.objectStore(STORE_NAME);
-      const request = store.add(response);
-
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error);
+  async saveResponse(data, submissionId) {
+    const result = await this.request('/responses', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: submissionId, answers: data })
     });
+    return result.id;
+  }
+
+  async login(password) {
+    this.adminPassword = password;
+    try {
+      await this.request('/responses?limit=1', {}, true);
+    } catch (error) {
+      this.adminPassword = null;
+      throw error;
+    }
   }
 
   async getAllResponses() {
-    await this.dbReady;
-
-    return new Promise((resolve, reject) => {
-      const transaction = this.db.transaction([STORE_NAME], 'readonly');
-      const store = transaction.objectStore(STORE_NAME);
-      const request = store.getAll();
-
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error);
-    });
+    const responses = [];
+    let offset = 0;
+    while (true) {
+      const page = await this.request(`/responses?offset=${offset}`, {}, true);
+      responses.push(...page.responses);
+      if (!page.hasMore) return responses;
+      offset += page.responses.length;
+    }
   }
 
   async deleteResponse(id) {
-    await this.dbReady;
-    return new Promise((resolve, reject) => {
-      const transaction = this.db.transaction([STORE_NAME], 'readwrite');
-      const store = transaction.objectStore(STORE_NAME);
-      const request = store.delete(id);
-
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
-    });
+    await this.request(`/responses/${encodeURIComponent(id)}`, { method: 'DELETE' }, true);
   }
 
   async clearAll() {
-    await this.dbReady;
-    return new Promise((resolve, reject) => {
-      const transaction = this.db.transaction([STORE_NAME], 'readwrite');
-      const store = transaction.objectStore(STORE_NAME);
-      const request = store.clear();
-
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
-    });
-  }
-
-  async getStatistics() {
-    const responses = await this.getAllResponses();
-    const stats = {
-      total: responses.length,
-      byQuestion: {}
-    };
-
-    responses.forEach(response => {
-      Object.keys(response).forEach(key => {
-        if (key.startsWith('q')) {
-          if (!stats.byQuestion[key]) {
-            stats.byQuestion[key] = {};
-          }
-          const value = response[key];
-          if (Array.isArray(value)) {
-            value.forEach(v => {
-              stats.byQuestion[key][v] = (stats.byQuestion[key][v] || 0) + 1;
-            });
-          } else {
-            stats.byQuestion[key][value] = (stats.byQuestion[key][value] || 0) + 1;
-          }
-        }
-      });
-    });
-
-    return stats;
+    await this.request('/responses', { method: 'DELETE' }, true);
   }
 
   exportAsJSON(responses) {
-    const dataStr = JSON.stringify(responses, null, 2);
-    this.downloadFile(dataStr, 'survey-responses.json', 'application/json');
+    this.downloadFile(JSON.stringify(responses, null, 2), 'survey-responses.json', 'application/json');
   }
 
   exportAsCSV(responses) {
     if (responses.length === 0) return;
-
-    const keys = Object.keys(responses[0]);
-    const csv = [
-      keys.join(','),
-      ...responses.map(r =>
-        keys.map(k => {
-          const val = r[k];
-          if (typeof val === 'string' && (val.includes(',') || val.includes('"'))) {
-            return `"${val.replace(/"/g, '""')}"`;
-          }
-          return val;
-        }).join(',')
-      )
-    ].join('\n');
-
-    this.downloadFile(csv, 'survey-responses.csv', 'text/csv;charset=utf-8;');
+    const keys = [...new Set(responses.flatMap(response => Object.keys(response)))];
+    const escape = value => {
+      const text = Array.isArray(value) ? value.join('; ') : String(value ?? '');
+      const safe = /^[=+\-@\t\r]/.test(text) ? `'${text}` : text;
+      return `"${safe.replace(/"/g, '""')}"`;
+    };
+    const csv = [keys.map(escape).join(','), ...responses.map(response =>
+      keys.map(key => escape(response[key])).join(','))].join('\r\n');
+    this.downloadFile(`\uFEFF${csv}`, 'survey-responses.csv', 'text/csv;charset=utf-8;');
   }
 
   downloadFile(content, filename, type) {
@@ -148,7 +100,7 @@ class DataManager {
     link.download = filename;
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    link.remove();
     URL.revokeObjectURL(url);
   }
 }

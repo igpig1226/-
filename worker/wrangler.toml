@@ -1,0 +1,9 @@
+name = "survey-collector"
+main = "index.js"
+compatibility_date = "2026-10-10"
+preview_urls = false
+
+[[d1_databases]]
+binding = "DB"
+database_name = "survey-responses"
+database_id = "10f0cdda-6091-4a5e-a640-1462c2cffde2"
