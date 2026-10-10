@@ -2,6 +2,8 @@ name = "survey-collector"
 main = "index.js"
 compatibility_date = "2026-10-10"
 preview_urls = false
+workers_dev = true
+routes = [{ pattern = "survey-api.igpig.xyz", custom_domain = true }]
 
 [[d1_databases]]
 binding = "DB"

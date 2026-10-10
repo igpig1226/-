@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://survey-collector.igpig1226.workers.dev';
+const API_BASE_URL = 'https://survey-api.igpig.xyz';
 
 class DataManager {
   async saveResponse(data, submissionId) {

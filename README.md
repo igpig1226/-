@@ -1,6 +1,6 @@
 # 网络改造问卷调查
 
-问卷页面由 GitHub Pages 托管。答卷通过 Cloudflare Worker 保存到 D1 数据库，管理员可通过 Cloudflare 控制台或 Wrangler 查看和导出。
+问卷页面由 GitHub Pages 托管。答卷通过 `https://survey-api.igpig.xyz` 上的 Cloudflare Worker 保存到 D1 数据库，管理员可通过 Cloudflare 控制台或 Wrangler 查看和导出。
 
 GitHub Pages 只能托管静态文件，不能直接把匿名访客的答案写入 GitHub 仓库。把 GitHub 写入令牌放在页面代码中会公开该令牌。
 
