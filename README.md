@@ -1,6 +1,6 @@
 # 网络改造问卷调查
 
-问卷页面由 GitHub Pages 托管。答卷通过 Cloudflare Worker 保存到 D1 数据库，因此不同设备提交的数据可以在同一个管理员页面查看和导出。
+问卷页面由 GitHub Pages 托管。答卷通过 Cloudflare Worker 保存到 D1 数据库，管理员可通过 Cloudflare 控制台或 Wrangler 查看和导出。
 
 GitHub Pages 只能托管静态文件，不能直接把匿名访客的答案写入 GitHub 仓库。把 GitHub 写入令牌放在页面代码中会公开该令牌。
 
@@ -22,11 +22,18 @@ npx wrangler secret put ADMIN_PASSWORD
 
 当前管理员密码保存在本机 `/Users/igpig/.config/survey-collector/admin-password`，文件权限仅允许当前用户读取；云端副本保存在 Worker secret 中。旧版密码曾写在公开源码中，已停用。Worker URL 是公开接口地址，可以放在前端；管理员密码不能写进仓库。
 
-部署后，填写并提交一份标记为测试的问卷；在另一个浏览器或设备打开 `admin.html`，输入新密码，确认能看见该记录并能导出 JSON。最后从管理员页删除测试记录。
+部署后，可用以下命令检查答卷总数：
+
+```sh
+cd worker
+npx wrangler d1 execute survey-responses --remote --command='SELECT COUNT(*) AS total FROM responses;'
+```
+
+答卷内容位于 `responses` 表的 `answers` JSON 列中。导出时可使用 `npx wrangler d1 export survey-responses --remote --output=survey-responses.sql`，并妥善保管导出文件。
 
 ## 旧版数据
 
-旧版答案存储在每位答卷人自己的浏览器 IndexedDB 中，不会自动迁移到 D1。部署新版前，先在**保存过旧答案的同一浏览器和同一网站地址**打开旧版 `admin.html`，导出 JSON。仅在其他浏览器打开管理员页无法取得那些旧答案。
+旧版答案存储在每位答卷人自己的浏览器 IndexedDB 中，不会自动迁移到 D1。旧数据如尚未导出，需要从保存过答案的原浏览器中提取。
 
 ## 本地预览
 
