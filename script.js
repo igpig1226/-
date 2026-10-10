@@ -1,9 +1,9 @@
 // Route sequences by role (data-question indices)
 const ROUTES = {
-    exam:     [0, 1, 2, 3, 4, 5, 6, 7, 8, 13, 14],
-    'no-exam':[0, 1, 6, 13, 14],
-    homeroom: [0, 1, 6, 8, 9, 10, 11, 13, 14],
-    counselor:[0, 1, 6, 12, 13, 14],
+    exam:     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 14, 15],
+    'no-exam':[0, 1, 6, 7, 14, 15],
+    homeroom: [0, 1, 6, 7, 9, 10, 11, 12, 14, 15],
+    counselor:[0, 1, 6, 7, 13, 14, 15],
 };
 
 const questions = document.querySelectorAll('.question-card');
@@ -117,6 +117,7 @@ const QUESTION_LABELS = {
     q5:                  '是否希望采用机考',
     q6:                  '对机考的总体态度',
     q7:                  '对学校 WiFi 的满意度',
+    q7_pilot:            '对试运行教室 WiFi 的满意度',
     q8_rating:           '考试期间网络方案可行性（评分）',
     q8_text:             '考试期间网络方案可行性（补充）',
     q9_rating:           '日常上课期间网络方案可行性（评分）',
